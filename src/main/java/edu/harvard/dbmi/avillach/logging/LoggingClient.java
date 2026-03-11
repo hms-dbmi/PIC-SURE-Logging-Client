@@ -22,10 +22,6 @@ public class LoggingClient implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingClient.class);
     private static final LoggingClient NO_OP = new NoOpLoggingClient();
 
-    // private final LoggingClientConfig config;
-    // private final HttpClient httpClient;
-    // private final ObjectMapper objectMapper;
-    // private final URI auditEndpoint;
     private final LoggingClientConfig config;
     private final Sender sender;
     private final ObjectMapper objectMapper;
@@ -38,7 +34,7 @@ public class LoggingClient implements AutoCloseable {
      */
     public LoggingClient(LoggingClientConfig config) {
         this.config = config;
-        this.sender = new JdkHttpSender();
+        this.sender = new JdkHttpSender(config);
         // NON_NULL inclusion is declared on the model classes via @JsonInclude.
         // The ObjectMapper itself uses default settings so behaviour is consistent
         // whether events are serialized here or elsewhere.
@@ -99,7 +95,7 @@ public class LoggingClient implements AutoCloseable {
         sender.send(body, auditEndpoint, config, resolved, bearerToken, requestId);
     }
 
-    private static String sanitizeExceptionMessage(Throwable t) {
+    static String sanitizeExceptionMessageForSender(Throwable t) {
         String message = t.getMessage();
         if (message == null) {
             return "(no message)";
@@ -136,65 +132,7 @@ public class LoggingClient implements AutoCloseable {
      */
     @Override
     public void close() {
-        // No-op on JDK 11. On JDK 21+ HttpClient implements AutoCloseable and
-        // calling close() would shut down its executor. We keep the contract so
-        // downstream code can wire up lifecycle hooks today without changes later.
-    }
-
-    private interface Sender {
-    void send(byte[] body, URI auditEndpoint, LoggingClientConfig config,
-              LoggingEvent resolved, String bearerToken, String requestId);
-    }
-
-    private static final class JdkHttpSender implements Sender {
-    
-        private final java.net.http.HttpClient httpClient =
-            java.net.http.HttpClient.newBuilder().build();
-    
-        @Override
-        public void send(byte[] body, URI auditEndpoint, LoggingClientConfig config,
-                         LoggingEvent resolved, String bearerToken, String requestId) {
-    
-            java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder()
-                .uri(auditEndpoint)
-                .timeout(config.getRequestTimeout())
-                .header("Content-Type", "application/json")
-                .header("X-API-Key", config.getApiKey())
-                .POST(java.net.http.HttpRequest.BodyPublishers.ofByteArray(body));
-    
-            if (bearerToken != null && !bearerToken.isEmpty()) {
-                requestBuilder.header("Authorization", bearerToken);
-            }
-            if (requestId != null && !requestId.isEmpty()) {
-                requestBuilder.header("X-Request-Id", requestId);
-            }
-    
-            httpClient.sendAsync(
-                    requestBuilder.build(),
-                    java.net.http.HttpResponse.BodyHandlers.discarding()
-                )
-                .thenAccept(response -> {
-                    if (response.statusCode() >= 300) {
-                        LOG.warn("logging-client: server returned {} for event_type={}",
-                            response.statusCode(), resolved.getEventType());
-                    }
-                })
-                .exceptionally(throwable -> {
-                    LOG.warn("logging-client: failed to send event_type={}: {} - {}",
-                        resolved.getEventType(),
-                        throwable.getClass().getSimpleName(),
-                        sanitizeExceptionMessage(throwable));
-                    return null;
-                });
-        }
-    }
-    
-    private static final class NoOpSender implements Sender {
-        @Override
-        public void send(byte[] body, URI auditEndpoint, LoggingClientConfig config,
-                         LoggingEvent resolved, String bearerToken, String requestId) {
-            // no-op
-        }
+        // No-op on JDK 11. On newer JDKs, sender lifecycle can be enhanced if needed.
     }
 
     private static final class NoOpLoggingClient extends LoggingClient {
