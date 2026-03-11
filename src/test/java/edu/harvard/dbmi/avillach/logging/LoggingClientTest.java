@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,20 +44,21 @@ class LoggingClientTest {
 
     @BeforeEach
     void setUp() throws IOException {
+        received.clear();
         latch = new CountDownLatch(1);
+
         server = HttpServer.create(new InetSocketAddress(0), 0);
         port = server.getAddress().getPort();
 
         server.createContext("/audit", exchange -> {
             byte[] bodyBytes = exchange.getRequestBody().readAllBytes();
-            String body = new String(bodyBytes);
+            String body = new String(bodyBytes, StandardCharsets.UTF_8);
             String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
             String apiKey = exchange.getRequestHeaders().getFirst("X-API-Key");
             String authorization = exchange.getRequestHeaders().getFirst("Authorization");
             String requestId = exchange.getRequestHeaders().getFirst("X-Request-Id");
 
             received.add(new ReceivedRequest(body, contentType, apiKey, authorization, requestId, 202));
-
             exchange.sendResponseHeaders(202, -1);
             exchange.close();
             latch.countDown();
@@ -67,7 +69,9 @@ class LoggingClientTest {
 
     @AfterEach
     void tearDown() {
-        server.stop(0);
+        if (server != null) {
+            server.stop(0);
+        }
     }
 
     private LoggingClient createClient() {
@@ -108,7 +112,7 @@ class LoggingClientTest {
             "req-abc-456"
         );
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
         ReceivedRequest req = received.get(0);
         assertEquals("Bearer jwt-token-123", req.authorization);
         assertEquals("req-abc-456", req.requestId);
@@ -120,7 +124,7 @@ class LoggingClientTest {
 
         client.send(LoggingEvent.builder("LOGIN").clientType("auth").build());
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
         ReceivedRequest req = received.get(0);
         assertTrue(req.body.contains("\"client_type\":\"auth\""));
         assertFalse(req.body.contains("\"client_type\":\"api\""));
@@ -130,11 +134,9 @@ class LoggingClientTest {
     void noOpClientDiscardsSilently() {
         LoggingClient client = LoggingClient.noOp();
 
-        // Should not throw
-        client.send(LoggingEvent.builder("TEST").build());
-        client.send(LoggingEvent.builder("TEST").build(), "Bearer token", "req-id");
-        client.send(null);
-
+        assertDoesNotThrow(() -> client.send(LoggingEvent.builder("TEST").build()));
+        assertDoesNotThrow(() -> client.send(LoggingEvent.builder("TEST").build(), "Bearer token", "req-id"));
+        assertDoesNotThrow(() -> client.send(null));
         assertFalse(client.isEnabled());
     }
 
@@ -147,14 +149,11 @@ class LoggingClientTest {
     @Test
     void handleNullEventGracefully() {
         LoggingClient client = createClient();
-        // Should not throw
-        client.send(null);
+        assertDoesNotThrow(() -> client.send(null));
     }
 
     @Test
     void handlesConnectionFailureGracefully() throws Exception {
-        // Use a non-routable address (RFC 5737) so the connection attempt fails quickly
-        // rather than racing against OS port-reuse on localhost:1.
         LoggingClient client = new LoggingClient(
             LoggingClientConfig.builder("http://192.0.2.1:1", "key")
                 .connectTimeout(Duration.ofMillis(200))
@@ -162,15 +161,8 @@ class LoggingClientTest {
                 .build()
         );
 
-        // Should not throw — error is logged asynchronously.
-        // Verify no exception propagates to the caller by asserting this completes normally.
-        assertDoesNotThrow(() ->
-            client.send(LoggingEvent.builder("TEST").action("fail").build())
-        );
+        assertDoesNotThrow(() -> client.send(LoggingEvent.builder("TEST").action("fail").build()));
 
-        // Wait long enough for the async connect timeout (200ms) + margin to fire.
-        // The assertion above is the real test; this pause just lets the async error
-        // handler run so the log message appears in test output for visual inspection.
         CountDownLatch errorLatch = new CountDownLatch(1);
         errorLatch.await(1, TimeUnit.SECONDS);
     }
@@ -193,7 +185,7 @@ class LoggingClientTest {
             .metadata(Map.of("resourceId", "uuid-123"))
             .build());
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
         ReceivedRequest req = received.get(0);
         assertTrue(req.body.contains("\"method\":\"POST\""));
         assertTrue(req.body.contains("\"url\":\"/query/sync\""));
@@ -205,7 +197,6 @@ class LoggingClientTest {
 
     @Test
     void handlesServerErrorGracefully() throws Exception {
-        // Replace the handler with one that returns 500
         server.removeContext("/audit");
         server.createContext("/audit", exchange -> {
             exchange.sendResponseHeaders(500, -1);
@@ -214,9 +205,8 @@ class LoggingClientTest {
         });
 
         LoggingClient client = createClient();
-        // Should not throw — error is logged asynchronously
-        client.send(LoggingEvent.builder("TEST").build());
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        assertDoesNotThrow(() -> client.send(LoggingEvent.builder("TEST").build()));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
     }
 }
