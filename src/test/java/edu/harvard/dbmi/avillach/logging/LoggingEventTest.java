@@ -14,27 +14,25 @@ class LoggingEventTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void serializesWithSnakeCaseFieldNames() throws Exception {
+    void serializesWithSnakeCaseFieldNames() {
         LoggingEvent event = LoggingEvent.builder("QUERY")
             .action("execute")
             .clientType("api")
             .build();
 
         JsonNode json = mapper.valueToTree(event);
-
         assertEquals("QUERY", json.get("event_type").asText());
         assertEquals("execute", json.get("action").asText());
         assertEquals("api", json.get("client_type").asText());
     }
 
     @Test
-    void omitsNullFields() throws Exception {
+    void omitsNullFields() {
         LoggingEvent event = LoggingEvent.builder("LOGIN")
             .action("attempt")
             .build();
 
         JsonNode json = mapper.valueToTree(event);
-
         assertTrue(json.has("event_type"));
         assertTrue(json.has("action"));
         assertFalse(json.has("client_type"));
@@ -44,7 +42,7 @@ class LoggingEventTest {
     }
 
     @Test
-    void serializesRequestInfo() throws Exception {
+    void serializesRequestInfo() {
         RequestInfo request = RequestInfo.builder()
             .method("POST")
             .url("/query/sync")
@@ -69,6 +67,7 @@ class LoggingEventTest {
         assertEquals(200, reqJson.get("status").asInt());
         assertEquals(150, reqJson.get("duration").asLong());
         assertEquals("application/json", reqJson.get("http_content_type").asText());
+
         // null fields should be absent
         assertFalse(reqJson.has("query_string"));
         assertFalse(reqJson.has("dest_ip"));
@@ -76,7 +75,7 @@ class LoggingEventTest {
     }
 
     @Test
-    void serializesMetadata() throws Exception {
+    void serializesMetadata() {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("resourceId", "abc-123");
         metadata.put("queryCount", 5);
@@ -94,7 +93,7 @@ class LoggingEventTest {
     }
 
     @Test
-    void serializesError() throws Exception {
+    void serializesError() {
         Map<String, Object> error = new HashMap<>();
         error.put("message", "Not found");
         error.put("code", 404);
@@ -115,7 +114,7 @@ class LoggingEventTest {
     void requiresEventType() {
         assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder(null));
         assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder(""));
-        assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder("  "));
+        assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder(" "));
     }
 
     @Test
@@ -125,9 +124,8 @@ class LoggingEventTest {
             metadata.put("key" + i, "value");
         }
 
-        assertThrows(IllegalArgumentException.class, () ->
-            LoggingEvent.builder("TEST").metadata(metadata).build()
-        );
+        assertThrows(IllegalArgumentException.class,
+            () -> LoggingEvent.builder("TEST").metadata(metadata).build());
     }
 
     @Test
@@ -137,9 +135,8 @@ class LoggingEventTest {
             error.put("key" + i, "value");
         }
 
-        assertThrows(IllegalArgumentException.class, () ->
-            LoggingEvent.builder("TEST").error(error).build()
-        );
+        assertThrows(IllegalArgumentException.class,
+            () -> LoggingEvent.builder("TEST").error(error).build());
     }
 
     @Test
@@ -149,15 +146,14 @@ class LoggingEventTest {
 
         LoggingEvent event = LoggingEvent.builder("TEST").metadata(metadata).build();
 
-        assertThrows(UnsupportedOperationException.class, () ->
-            event.getMetadata().put("newKey", "newValue")
-        );
+        assertThrows(UnsupportedOperationException.class,
+            () -> event.getMetadata().put("newKey", "newValue"));
     }
 
     @Test
     void deserializesFromServerFormat() throws Exception {
-        String json = "{\"event_type\":\"QUERY\",\"action\":\"execute\",\"client_type\":\"api\"," +
-            "\"request\":{\"method\":\"POST\",\"url\":\"/query\",\"src_ip\":\"127.0.0.1\",\"status\":200}}";
+        String json = "{\"event_type\":\"QUERY\",\"action\":\"execute\",\"client_type\":\"api\","
+            + "\"request\":{\"method\":\"POST\",\"url\":\"/query\",\"src_ip\":\"127.0.0.1\",\"status\":200}}";
 
         LoggingEvent event = mapper.readValue(json, LoggingEvent.class);
 
@@ -204,7 +200,7 @@ class LoggingEventTest {
     }
 
     @Test
-    void requestInfoAllFields() throws Exception {
+    void requestInfoAllFields() {
         RequestInfo request = RequestInfo.builder()
             .requestId("req-123")
             .method("POST")
