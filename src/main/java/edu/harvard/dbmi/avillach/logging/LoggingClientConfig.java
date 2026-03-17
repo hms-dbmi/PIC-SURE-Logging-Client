@@ -3,8 +3,7 @@ package edu.harvard.dbmi.avillach.logging;
 import java.time.Duration;
 
 /**
- * Configuration for {@link LoggingClient}.
- * Use {@link #builder(String, String)} to construct instances.
+ * Configuration for {@link LoggingClient}. Use {@link #builder(String, String)} to construct instances.
  */
 public final class LoggingClientConfig {
 
@@ -26,17 +25,31 @@ public final class LoggingClientConfig {
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
-    public String getBaseUrl() { return baseUrl; }
-    public String getApiKey() { return apiKey; }
-    public String getClientType() { return clientType; }
-    public Duration getConnectTimeout() { return connectTimeout; }
-    public Duration getRequestTimeout() { return requestTimeout; }
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public String getClientType() {
+        return clientType;
+    }
+
+    public Duration getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public Duration getRequestTimeout() {
+        return requestTimeout;
+    }
 
     /**
      * Create a builder with required parameters.
      *
      * @param baseUrl the base URL of the PIC-SURE Logging service (e.g. "http://pic-sure-logging:80")
-     * @param apiKey  the API key for authentication
+     * @param apiKey the API key for authentication
      * @return a new builder
      */
     public static Builder builder(String baseUrl, String apiKey) {
@@ -61,9 +74,20 @@ public final class LoggingClientConfig {
             this.apiKey = apiKey;
         }
 
-        public Builder clientType(String clientType) { this.clientType = clientType; return this; }
-        public Builder connectTimeout(Duration connectTimeout) { this.connectTimeout = connectTimeout; return this; }
-        public Builder requestTimeout(Duration requestTimeout) { this.requestTimeout = requestTimeout; return this; }
+        public Builder clientType(String clientType) {
+            this.clientType = clientType;
+            return this;
+        }
+
+        public Builder connectTimeout(Duration connectTimeout) {
+            this.connectTimeout = connectTimeout;
+            return this;
+        }
+
+        public Builder requestTimeout(Duration requestTimeout) {
+            this.requestTimeout = requestTimeout;
+            return this;
+        }
 
         public LoggingClientConfig build() {
             return new LoggingClientConfig(this);

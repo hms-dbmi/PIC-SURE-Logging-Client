@@ -5,8 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Mirrors the server-side RequestInfo model.
- * Use {@link #builder()} to construct instances.
+ * Mirrors the server-side RequestInfo model. Use {@link #builder()} to construct instances.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -73,19 +72,57 @@ public final class RequestInfo {
         this(new Builder());
     }
 
-    public String getRequestId() { return requestId; }
-    public String getMethod() { return method; }
-    public String getUrl() { return url; }
-    public String getQueryString() { return queryString; }
-    public String getSrcIp() { return srcIp; }
-    public String getDestIp() { return destIp; }
-    public Integer getDestPort() { return destPort; }
-    public String getHttpUserAgent() { return httpUserAgent; }
-    public String getHttpContentType() { return httpContentType; }
-    public Integer getStatus() { return status; }
-    public Long getBytes() { return bytes; }
-    public Long getDuration() { return duration; }
-    public String getReferrer() { return referrer; }
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public String getQueryString() {
+        return queryString;
+    }
+
+    public String getSrcIp() {
+        return srcIp;
+    }
+
+    public String getDestIp() {
+        return destIp;
+    }
+
+    public Integer getDestPort() {
+        return destPort;
+    }
+
+    public String getHttpUserAgent() {
+        return httpUserAgent;
+    }
+
+    public String getHttpContentType() {
+        return httpContentType;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public Long getBytes() {
+        return bytes;
+    }
+
+    public Long getDuration() {
+        return duration;
+    }
+
+    public String getReferrer() {
+        return referrer;
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -108,19 +145,70 @@ public final class RequestInfo {
 
         private Builder() {}
 
-        public Builder requestId(String requestId) { this.requestId = requestId; return this; }
-        public Builder method(String method) { this.method = method; return this; }
-        public Builder url(String url) { this.url = url; return this; }
-        public Builder queryString(String queryString) { this.queryString = queryString; return this; }
-        public Builder srcIp(String srcIp) { this.srcIp = srcIp; return this; }
-        public Builder destIp(String destIp) { this.destIp = destIp; return this; }
-        public Builder destPort(Integer destPort) { this.destPort = destPort; return this; }
-        public Builder httpUserAgent(String httpUserAgent) { this.httpUserAgent = httpUserAgent; return this; }
-        public Builder httpContentType(String httpContentType) { this.httpContentType = httpContentType; return this; }
-        public Builder status(Integer status) { this.status = status; return this; }
-        public Builder bytes(Long bytes) { this.bytes = bytes; return this; }
-        public Builder duration(Long duration) { this.duration = duration; return this; }
-        public Builder referrer(String referrer) { this.referrer = referrer; return this; }
+        public Builder requestId(String requestId) {
+            this.requestId = requestId;
+            return this;
+        }
+
+        public Builder method(String method) {
+            this.method = method;
+            return this;
+        }
+
+        public Builder url(String url) {
+            this.url = url;
+            return this;
+        }
+
+        public Builder queryString(String queryString) {
+            this.queryString = queryString;
+            return this;
+        }
+
+        public Builder srcIp(String srcIp) {
+            this.srcIp = srcIp;
+            return this;
+        }
+
+        public Builder destIp(String destIp) {
+            this.destIp = destIp;
+            return this;
+        }
+
+        public Builder destPort(Integer destPort) {
+            this.destPort = destPort;
+            return this;
+        }
+
+        public Builder httpUserAgent(String httpUserAgent) {
+            this.httpUserAgent = httpUserAgent;
+            return this;
+        }
+
+        public Builder httpContentType(String httpContentType) {
+            this.httpContentType = httpContentType;
+            return this;
+        }
+
+        public Builder status(Integer status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder bytes(Long bytes) {
+            this.bytes = bytes;
+            return this;
+        }
+
+        public Builder duration(Long duration) {
+            this.duration = duration;
+            return this;
+        }
+
+        public Builder referrer(String referrer) {
+            this.referrer = referrer;
+            return this;
+        }
 
         public RequestInfo build() {
             return new RequestInfo(this);

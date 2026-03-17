@@ -1,6 +1,6 @@
 # PIC-SURE Logging Client
 
-Lightweight Java client library for sending structured audit events to the [PIC-SURE Logging](../PIC-SURE-Logging) service. Used by PIC-SURE platform components (API, Auth, HPDS, UI, etc.) to emit query, login, access, and error events to a centralized logging service.
+Lightweight Java client library for sending structured audit events to the [PIC-SURE Logging](https://github.com/hms-dbmi/PIC-SURE-Logging) service. Used by PIC-SURE platform components (API, Auth, HPDS, UI, etc.) to emit query, login, access, and error events to a centralized logging service.
 
 - **Java 11+** compatible (works with WildFly 17 through Spring Boot 3.x)
 - **Minimal dependencies** — uses `java.net.http.HttpClient` (built into JDK 11+), Jackson, and SLF4J
@@ -12,9 +12,17 @@ Lightweight Java client library for sending structured audit events to the [PIC-
 
 ## Installation
 
-Add to your `pom.xml`:
+Add the GitHub Packages repository and dependency to your `pom.xml`:
 
 ```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <name>GitHub HMS-DBMI Apache Maven Packages</name>
+        <url>https://maven.pkg.github.com/hms-dbmi/pic-sure-logging-client</url>
+    </repository>
+</repositories>
+
 <dependency>
     <groupId>edu.harvard.dbmi.avillach</groupId>
     <artifactId>pic-sure-logging-client</artifactId>
@@ -328,8 +336,10 @@ The client enforces the same limits as the server:
 ## Building
 
 ```bash
-mvn clean install            # build + test
+mvn clean install              # build + test
 mvn clean install -DskipTests  # build only
+mvn spotless:apply             # auto-format code
+mvn spotless:check             # check formatting (CI uses this)
 ```
 
 Requires Java 11+.

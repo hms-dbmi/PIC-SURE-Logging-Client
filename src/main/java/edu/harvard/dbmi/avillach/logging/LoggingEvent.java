@@ -9,8 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Mirrors the server-side AuditEvent model.
- * Use {@link #builder(String)} to construct instances.
+ * Mirrors the server-side AuditEvent model. Use {@link #builder(String)} to construct instances.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,12 +41,8 @@ public final class LoggingEvent {
         this.action = builder.action;
         this.clientType = builder.clientType;
         this.request = builder.request;
-        this.metadata = builder.metadata != null
-            ? Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata))
-            : null;
-        this.error = builder.error != null
-            ? Collections.unmodifiableMap(new LinkedHashMap<>(builder.error))
-            : null;
+        this.metadata = builder.metadata != null ? Collections.unmodifiableMap(new LinkedHashMap<>(builder.metadata)) : null;
+        this.error = builder.error != null ? Collections.unmodifiableMap(new LinkedHashMap<>(builder.error)) : null;
     }
 
     // Jackson deserialization constructor
@@ -61,12 +56,29 @@ public final class LoggingEvent {
         this.error = null;
     }
 
-    public String getEventType() { return eventType; }
-    public String getAction() { return action; }
-    public String getClientType() { return clientType; }
-    public RequestInfo getRequest() { return request; }
-    public Map<String, Object> getMetadata() { return metadata; }
-    public Map<String, Object> getError() { return error; }
+    public String getEventType() {
+        return eventType;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getClientType() {
+        return clientType;
+    }
+
+    public RequestInfo getRequest() {
+        return request;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public Map<String, Object> getError() {
+        return error;
+    }
 
     /**
      * Create a builder with the required event type.
@@ -93,9 +105,20 @@ public final class LoggingEvent {
             this.eventType = eventType;
         }
 
-        public Builder action(String action) { this.action = action; return this; }
-        public Builder clientType(String clientType) { this.clientType = clientType; return this; }
-        public Builder request(RequestInfo request) { this.request = request; return this; }
+        public Builder action(String action) {
+            this.action = action;
+            return this;
+        }
+
+        public Builder clientType(String clientType) {
+            this.clientType = clientType;
+            return this;
+        }
+
+        public Builder request(RequestInfo request) {
+            this.request = request;
+            return this;
+        }
 
         public Builder metadata(Map<String, Object> metadata) {
             this.metadata = metadata;
@@ -109,31 +132,22 @@ public final class LoggingEvent {
 
         public LoggingEvent build() {
             if (metadata != null && metadata.size() > MAX_METADATA_KEYS) {
-                throw new IllegalArgumentException(
-                    "metadata must not exceed " + MAX_METADATA_KEYS + " keys, got " + metadata.size()
-                );
+                throw new IllegalArgumentException("metadata must not exceed " + MAX_METADATA_KEYS + " keys, got " + metadata.size());
             }
             if (error != null && error.size() > MAX_ERROR_KEYS) {
-                throw new IllegalArgumentException(
-                    "error must not exceed " + MAX_ERROR_KEYS + " keys, got " + error.size()
-                );
+                throw new IllegalArgumentException("error must not exceed " + MAX_ERROR_KEYS + " keys, got " + error.size());
             }
             return new LoggingEvent(this);
         }
     }
 
     /**
-     * Returns a copy of this event with the given clientType applied.
-     * All other fields are preserved. Used by {@link LoggingClient} to apply config defaults.
+     * Returns a copy of this event with the given clientType applied. All other fields are preserved. Used by {@link LoggingClient} to
+     * apply config defaults.
      */
     LoggingEvent withClientType(String clientType) {
-        return LoggingEvent.builder(this.eventType)
-            .action(this.action)
-            .clientType(clientType)
-            .request(this.request)
-            .metadata(this.metadata)
-            .error(this.error)
-            .build();
+        return LoggingEvent.builder(this.eventType).action(this.action).clientType(clientType).request(this.request).metadata(this.metadata)
+            .error(this.error).build();
     }
 
     @Override

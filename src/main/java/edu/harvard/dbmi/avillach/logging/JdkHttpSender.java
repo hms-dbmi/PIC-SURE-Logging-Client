@@ -12,20 +12,16 @@ final class JdkHttpSender implements Sender {
     private final java.net.http.HttpClient httpClient;
 
     JdkHttpSender(LoggingClientConfig config) {
-        this.httpClient = java.net.http.HttpClient.newBuilder()
-            .connectTimeout(config.getConnectTimeout())
-            .build();
+        this.httpClient = java.net.http.HttpClient.newBuilder().connectTimeout(config.getConnectTimeout()).build();
     }
 
     @Override
-    public void send(byte[] body, URI auditEndpoint, LoggingClientConfig config,
-                     LoggingEvent resolved, String bearerToken, String requestId) {
+    public void send(
+        byte[] body, URI auditEndpoint, LoggingClientConfig config, LoggingEvent resolved, String bearerToken, String requestId
+    ) {
 
-        java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder()
-            .uri(auditEndpoint)
-            .timeout(config.getRequestTimeout())
-            .header("Content-Type", "application/json")
-            .header("X-API-Key", config.getApiKey())
+        java.net.http.HttpRequest.Builder requestBuilder = java.net.http.HttpRequest.newBuilder().uri(auditEndpoint)
+            .timeout(config.getRequestTimeout()).header("Content-Type", "application/json").header("X-API-Key", config.getApiKey())
             .POST(java.net.http.HttpRequest.BodyPublishers.ofByteArray(body));
 
         if (bearerToken != null && !bearerToken.isEmpty()) {
@@ -35,22 +31,16 @@ final class JdkHttpSender implements Sender {
             requestBuilder.header("X-Request-Id", requestId);
         }
 
-        httpClient.sendAsync(
-                requestBuilder.build(),
-                java.net.http.HttpResponse.BodyHandlers.discarding()
-            )
-            .thenAccept(response -> {
-                if (response.statusCode() >= 300) {
-                    LOG.warn("logging-client: server returned {} for event_type={}",
-                        response.statusCode(), resolved.getEventType());
-                }
-            })
-            .exceptionally(throwable -> {
-                LOG.warn("logging-client: failed to send event_type={}: {} - {}",
-                    resolved.getEventType(),
-                    throwable.getClass().getSimpleName(),
-                    LoggingClient.sanitizeExceptionMessageForSender(throwable));
-                return null;
-            });
+        httpClient.sendAsync(requestBuilder.build(), java.net.http.HttpResponse.BodyHandlers.discarding()).thenAccept(response -> {
+            if (response.statusCode() >= 300) {
+                LOG.warn("logging-client: server returned {} for event_type={}", response.statusCode(), resolved.getEventType());
+            }
+        }).exceptionally(throwable -> {
+            LOG.warn(
+                "logging-client: failed to send event_type={}: {} - {}", resolved.getEventType(), throwable.getClass().getSimpleName(),
+                LoggingClient.sanitizeExceptionMessageForSender(throwable)
+            );
+            return null;
+        });
     }
 }

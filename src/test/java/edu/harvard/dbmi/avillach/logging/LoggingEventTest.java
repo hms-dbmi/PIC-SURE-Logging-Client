@@ -15,10 +15,7 @@ class LoggingEventTest {
 
     @Test
     void serializesWithSnakeCaseFieldNames() {
-        LoggingEvent event = LoggingEvent.builder("QUERY")
-            .action("execute")
-            .clientType("api")
-            .build();
+        LoggingEvent event = LoggingEvent.builder("QUERY").action("execute").clientType("api").build();
 
         JsonNode json = mapper.valueToTree(event);
         assertEquals("QUERY", json.get("event_type").asText());
@@ -28,9 +25,7 @@ class LoggingEventTest {
 
     @Test
     void omitsNullFields() {
-        LoggingEvent event = LoggingEvent.builder("LOGIN")
-            .action("attempt")
-            .build();
+        LoggingEvent event = LoggingEvent.builder("LOGIN").action("attempt").build();
 
         JsonNode json = mapper.valueToTree(event);
         assertTrue(json.has("event_type"));
@@ -43,19 +38,10 @@ class LoggingEventTest {
 
     @Test
     void serializesRequestInfo() {
-        RequestInfo request = RequestInfo.builder()
-            .method("POST")
-            .url("/query/sync")
-            .srcIp("10.0.0.1")
-            .status(200)
-            .duration(150L)
-            .httpContentType("application/json")
-            .build();
+        RequestInfo request = RequestInfo.builder().method("POST").url("/query/sync").srcIp("10.0.0.1").status(200).duration(150L)
+            .httpContentType("application/json").build();
 
-        LoggingEvent event = LoggingEvent.builder("QUERY")
-            .action("execute")
-            .request(request)
-            .build();
+        LoggingEvent event = LoggingEvent.builder("QUERY").action("execute").request(request).build();
 
         JsonNode json = mapper.valueToTree(event);
         JsonNode reqJson = json.get("request");
@@ -80,9 +66,7 @@ class LoggingEventTest {
         metadata.put("resourceId", "abc-123");
         metadata.put("queryCount", 5);
 
-        LoggingEvent event = LoggingEvent.builder("QUERY")
-            .metadata(metadata)
-            .build();
+        LoggingEvent event = LoggingEvent.builder("QUERY").metadata(metadata).build();
 
         JsonNode json = mapper.valueToTree(event);
         JsonNode metaJson = json.get("metadata");
@@ -98,9 +82,7 @@ class LoggingEventTest {
         error.put("message", "Not found");
         error.put("code", 404);
 
-        LoggingEvent event = LoggingEvent.builder("ERROR")
-            .error(error)
-            .build();
+        LoggingEvent event = LoggingEvent.builder("ERROR").error(error).build();
 
         JsonNode json = mapper.valueToTree(event);
         JsonNode errorJson = json.get("error");
@@ -124,8 +106,7 @@ class LoggingEventTest {
             metadata.put("key" + i, "value");
         }
 
-        assertThrows(IllegalArgumentException.class,
-            () -> LoggingEvent.builder("TEST").metadata(metadata).build());
+        assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder("TEST").metadata(metadata).build());
     }
 
     @Test
@@ -135,8 +116,7 @@ class LoggingEventTest {
             error.put("key" + i, "value");
         }
 
-        assertThrows(IllegalArgumentException.class,
-            () -> LoggingEvent.builder("TEST").error(error).build());
+        assertThrows(IllegalArgumentException.class, () -> LoggingEvent.builder("TEST").error(error).build());
     }
 
     @Test
@@ -146,8 +126,7 @@ class LoggingEventTest {
 
         LoggingEvent event = LoggingEvent.builder("TEST").metadata(metadata).build();
 
-        assertThrows(UnsupportedOperationException.class,
-            () -> event.getMetadata().put("newKey", "newValue"));
+        assertThrows(UnsupportedOperationException.class, () -> event.getMetadata().put("newKey", "newValue"));
     }
 
     @Test
@@ -169,22 +148,12 @@ class LoggingEventTest {
 
     @Test
     void roundTripSerialization() throws Exception {
-        RequestInfo request = RequestInfo.builder()
-            .method("GET")
-            .url("/info")
-            .status(200)
-            .duration(42L)
-            .build();
+        RequestInfo request = RequestInfo.builder().method("GET").url("/info").status(200).duration(42L).build();
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("key", "value");
 
-        LoggingEvent original = LoggingEvent.builder("ACCESS")
-            .action("read")
-            .clientType("ui")
-            .request(request)
-            .metadata(metadata)
-            .build();
+        LoggingEvent original = LoggingEvent.builder("ACCESS").action("read").clientType("ui").request(request).metadata(metadata).build();
 
         String json = mapper.writeValueAsString(original);
         LoggingEvent deserialized = mapper.readValue(json, LoggingEvent.class);
@@ -201,21 +170,9 @@ class LoggingEventTest {
 
     @Test
     void requestInfoAllFields() {
-        RequestInfo request = RequestInfo.builder()
-            .requestId("req-123")
-            .method("POST")
-            .url("/query/sync")
-            .queryString("limit=100")
-            .srcIp("10.0.0.1")
-            .destIp("10.0.0.2")
-            .destPort(8080)
-            .httpUserAgent("PIC-SURE/2.0")
-            .httpContentType("application/json")
-            .status(200)
-            .bytes(4096L)
-            .duration(250L)
-            .referrer("https://picsure.example.com")
-            .build();
+        RequestInfo request = RequestInfo.builder().requestId("req-123").method("POST").url("/query/sync").queryString("limit=100")
+            .srcIp("10.0.0.1").destIp("10.0.0.2").destPort(8080).httpUserAgent("PIC-SURE/2.0").httpContentType("application/json")
+            .status(200).bytes(4096L).duration(250L).referrer("https://picsure.example.com").build();
 
         JsonNode json = mapper.valueToTree(request);
 

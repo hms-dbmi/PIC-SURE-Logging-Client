@@ -4,25 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Factory that creates a {@link LoggingClient} from environment variables,
- * returning {@link LoggingClient#noOp()} when the service is not configured.
- * <p>
- * Expected environment variables:
- * <ul>
- *   <li>{@code LOGGING_SERVICE_URL} — base URL of the logging service</li>
- *   <li>{@code LOGGING_API_KEY} — API key for authentication</li>
- * </ul>
- * <p>
- * For consumers where the logging-client JAR may not be on the classpath,
- * wrap the call in a try/catch:
- * <pre>{@code
- * LoggingClient client;
- * try {
- *     client = LoggingClientFactory.create("api");
- * } catch (NoClassDefFoundError e) {
- *     client = null;
- * }
- * }</pre>
+ * Factory that creates a {@link LoggingClient} from environment variables, returning {@link LoggingClient#noOp()} when the service is not
+ * configured. <p> Expected environment variables: <ul> <li>{@code LOGGING_SERVICE_URL} — base URL of the logging service</li>
+ * <li>{@code LOGGING_API_KEY} — API key for authentication</li> </ul> <p> For consumers where the logging-client JAR may not be on the
+ * classpath, wrap the call in a try/catch: <pre>{@code LoggingClient client; try { client = LoggingClientFactory.create("api"); } catch
+ * (NoClassDefFoundError e) { client = null; } }</pre>
  */
 public final class LoggingClientFactory {
 
@@ -31,8 +17,7 @@ public final class LoggingClientFactory {
     private LoggingClientFactory() {}
 
     /**
-     * Create a LoggingClient from environment variables.
-     * Returns {@link LoggingClient#noOp()} if the URL or API key is missing.
+     * Create a LoggingClient from environment variables. Returns {@link LoggingClient#noOp()} if the URL or API key is missing.
      *
      * @param clientType the default client_type for events (e.g. "api", "auth", "hpds")
      * @return a configured LoggingClient, or no-op if not configured
