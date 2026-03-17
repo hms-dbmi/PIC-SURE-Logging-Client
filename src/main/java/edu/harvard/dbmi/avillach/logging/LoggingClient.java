@@ -5,9 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
 /**
  * Thread-safe, fire-and-forget client for the PIC-SURE Logging service.
@@ -26,7 +23,7 @@ public class LoggingClient implements AutoCloseable {
     private static final LoggingClient NO_OP = new NoOpLoggingClient();
 
     private final LoggingClientConfig config;
-    private final HttpClient httpClient;
+    private final Sender sender;
     private final ObjectMapper objectMapper;
     private final URI auditEndpoint;
 
@@ -37,9 +34,7 @@ public class LoggingClient implements AutoCloseable {
      */
     public LoggingClient(LoggingClientConfig config) {
         this.config = config;
-        this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(config.getConnectTimeout())
-            .build();
+        this.sender = new JdkHttpSender(config);
         // NON_NULL inclusion is declared on the model classes via @JsonInclude.
         // The ObjectMapper itself uses default settings so behaviour is consistent
         // whether events are serialized here or elsewhere.
@@ -50,7 +45,7 @@ public class LoggingClient implements AutoCloseable {
     // For NoOp subclass
     LoggingClient() {
         this.config = null;
-        this.httpClient = null;
+        this.sender = new NoOpSender();
         this.objectMapper = null;
         this.auditEndpoint = null;
     }
@@ -97,40 +92,10 @@ public class LoggingClient implements AutoCloseable {
             return;
         }
 
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-            .uri(auditEndpoint)
-            .timeout(config.getRequestTimeout())
-            .header("Content-Type", "application/json")
-            .header("X-API-Key", config.getApiKey())
-            .POST(HttpRequest.BodyPublishers.ofByteArray(body));
-
-        if (bearerToken != null && !bearerToken.isEmpty()) {
-            requestBuilder.header("Authorization", bearerToken);
-        }
-        if (requestId != null && !requestId.isEmpty()) {
-            requestBuilder.header("X-Request-Id", requestId);
-        }
-
-        httpClient.sendAsync(requestBuilder.build(), HttpResponse.BodyHandlers.discarding())
-            .thenAccept(response -> {
-                if (response.statusCode() >= 300) {
-                    LOG.warn("logging-client: server returned {} for event_type={}",
-                        response.statusCode(), resolved.getEventType());
-                }
-            })
-            .exceptionally(throwable -> {
-                // Log only the exception class and a generic message to avoid leaking
-                // sensitive headers (e.g. API key) that some JDK versions include in
-                // HttpClient exception messages.
-                LOG.warn("logging-client: failed to send event_type={}: {} - {}",
-                    resolved.getEventType(),
-                    throwable.getClass().getSimpleName(),
-                    sanitizeExceptionMessage(throwable));
-                return null;
-            });
+        sender.send(body, auditEndpoint, config, resolved, bearerToken, requestId);
     }
 
-    private static String sanitizeExceptionMessage(Throwable t) {
+    static String sanitizeExceptionMessageForSender(Throwable t) {
         String message = t.getMessage();
         if (message == null) {
             return "(no message)";
@@ -167,9 +132,7 @@ public class LoggingClient implements AutoCloseable {
      */
     @Override
     public void close() {
-        // No-op on JDK 11. On JDK 21+ HttpClient implements AutoCloseable and
-        // calling close() would shut down its executor. We keep the contract so
-        // downstream code can wire up lifecycle hooks today without changes later.
+        // No-op on JDK 11. On newer JDKs, sender lifecycle can be enhanced if needed.
     }
 
     private static final class NoOpLoggingClient extends LoggingClient {
