@@ -31,8 +31,7 @@ class LoggingClientTest {
         final String requestId;
         final int responseCode;
 
-        ReceivedRequest(String body, String contentType, String apiKey,
-                        String authorization, String requestId, int responseCode) {
+        ReceivedRequest(String body, String contentType, String apiKey, String authorization, String requestId, int responseCode) {
             this.body = body;
             this.contentType = contentType;
             this.apiKey = apiKey;
@@ -76,11 +75,8 @@ class LoggingClientTest {
 
     private LoggingClient createClient() {
         return new LoggingClient(
-            LoggingClientConfig.builder("http://localhost:" + port, "test-api-key")
-                .clientType("api")
-                .connectTimeout(Duration.ofSeconds(2))
-                .requestTimeout(Duration.ofSeconds(5))
-                .build()
+            LoggingClientConfig.builder("http://localhost:" + port, "test-api-key").clientType("api").connectTimeout(Duration.ofSeconds(2))
+                .requestTimeout(Duration.ofSeconds(5)).build()
         );
     }
 
@@ -106,11 +102,7 @@ class LoggingClientTest {
     void sendsAuthorizationAndRequestIdHeaders() throws Exception {
         LoggingClient client = createClient();
 
-        client.send(
-            LoggingEvent.builder("ACCESS").action("read").build(),
-            "Bearer jwt-token-123",
-            "req-abc-456"
-        );
+        client.send(LoggingEvent.builder("ACCESS").action("read").build(), "Bearer jwt-token-123", "req-abc-456");
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
         ReceivedRequest req = received.get(0);
@@ -155,10 +147,8 @@ class LoggingClientTest {
     @Test
     void handlesConnectionFailureGracefully() throws Exception {
         LoggingClient client = new LoggingClient(
-            LoggingClientConfig.builder("http://192.0.2.1:1", "key")
-                .connectTimeout(Duration.ofMillis(200))
-                .requestTimeout(Duration.ofMillis(500))
-                .build()
+            LoggingClientConfig.builder("http://192.0.2.1:1", "key").connectTimeout(Duration.ofMillis(200))
+                .requestTimeout(Duration.ofMillis(500)).build()
         );
 
         assertDoesNotThrow(() -> client.send(LoggingEvent.builder("TEST").action("fail").build()));
@@ -171,19 +161,10 @@ class LoggingClientTest {
     void sendsRequestInfoInBody() throws Exception {
         LoggingClient client = createClient();
 
-        RequestInfo request = RequestInfo.builder()
-            .method("POST")
-            .url("/query/sync")
-            .srcIp("192.168.1.1")
-            .status(200)
-            .duration(150L)
-            .build();
+        RequestInfo request =
+            RequestInfo.builder().method("POST").url("/query/sync").srcIp("192.168.1.1").status(200).duration(150L).build();
 
-        client.send(LoggingEvent.builder("QUERY")
-            .action("execute")
-            .request(request)
-            .metadata(Map.of("resourceId", "uuid-123"))
-            .build());
+        client.send(LoggingEvent.builder("QUERY").action("execute").request(request).metadata(Map.of("resourceId", "uuid-123")).build());
 
         assertTrue(latch.await(5, TimeUnit.SECONDS), "Server should receive request");
         ReceivedRequest req = received.get(0);

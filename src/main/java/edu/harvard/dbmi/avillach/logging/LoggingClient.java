@@ -7,15 +7,10 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 
 /**
- * Thread-safe, fire-and-forget client for the PIC-SURE Logging service.
- * <p>
- * Create a single instance via the constructor and share it across the application.
- * All {@link #send} calls are async and never throw exceptions — failures are logged at WARN level.
- * <p>
- * Use {@link #noOp()} for testing or when the logging service is not configured.
- * <p>
- * Implements {@link AutoCloseable} so container-managed producers (CDI {@code @PreDestroy},
- * Spring destroy methods) can clean up the internal HTTP client thread pool on redeployment.
+ * Thread-safe, fire-and-forget client for the PIC-SURE Logging service. <p> Create a single instance via the constructor and share it
+ * across the application. All {@link #send} calls are async and never throw exceptions — failures are logged at WARN level. <p> Use
+ * {@link #noOp()} for testing or when the logging service is not configured. <p> Implements {@link AutoCloseable} so container-managed
+ * producers (CDI {@code @PreDestroy}, Spring destroy methods) can clean up the internal HTTP client thread pool on redeployment.
  */
 public class LoggingClient implements AutoCloseable {
 
@@ -51,16 +46,15 @@ public class LoggingClient implements AutoCloseable {
     }
 
     /**
-     * Returns a no-op client that silently discards all events.
-     * Use when the logging service is not configured or in tests.
+     * Returns a no-op client that silently discards all events. Use when the logging service is not configured or in tests.
      */
     public static LoggingClient noOp() {
         return NO_OP;
     }
 
     /**
-     * Send a logging event asynchronously. Returns immediately.
-     * If the config has a default clientType and the event doesn't specify one, it will be applied.
+     * Send a logging event asynchronously. Returns immediately. If the config has a default clientType and the event doesn't specify one,
+     * it will be applied.
      *
      * @param event the logging event to send
      */
@@ -71,10 +65,9 @@ public class LoggingClient implements AutoCloseable {
     /**
      * Send a logging event asynchronously with optional authorization and request ID headers.
      *
-     * @param event       the logging event to send
-     * @param bearerToken optional Authorization header value (e.g. "Bearer xxx") — passed through
-     *                    so the server can extract JWT claims
-     * @param requestId   optional X-Request-Id header for correlation
+     * @param event the logging event to send
+     * @param bearerToken optional Authorization header value (e.g. "Bearer xxx") — passed through so the server can extract JWT claims
+     * @param requestId optional X-Request-Id header for correlation
      */
     public void send(LoggingEvent event, String bearerToken, String requestId) {
         if (event == null) {
@@ -123,12 +116,9 @@ public class LoggingClient implements AutoCloseable {
     }
 
     /**
-     * Shuts down the internal HTTP client, releasing its thread pool and connections.
-     * Safe to call multiple times. After closing, subsequent {@link #send} calls will
-     * fail asynchronously (errors logged at WARN level).
-     * <p>
-     * Call this from CDI {@code @PreDestroy} or Spring destroy methods to prevent
-     * thread leaks during application redeployment.
+     * Shuts down the internal HTTP client, releasing its thread pool and connections. Safe to call multiple times. After closing,
+     * subsequent {@link #send} calls will fail asynchronously (errors logged at WARN level). <p> Call this from CDI {@code @PreDestroy} or
+     * Spring destroy methods to prevent thread leaks during application redeployment.
      */
     @Override
     public void close() {
