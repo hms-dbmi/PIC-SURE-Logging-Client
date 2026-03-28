@@ -169,6 +169,41 @@ class LoggingEventTest {
     }
 
     @Test
+    void serializesSessionId() {
+        LoggingEvent event = LoggingEvent.builder("QUERY").action("execute").sessionId("sess-abc").build();
+
+        JsonNode json = mapper.valueToTree(event);
+        assertEquals("sess-abc", json.get("session_id").asText());
+    }
+
+    @Test
+    void omitsNullSessionId() {
+        LoggingEvent event = LoggingEvent.builder("QUERY").action("execute").build();
+
+        JsonNode json = mapper.valueToTree(event);
+        assertFalse(json.has("session_id"));
+    }
+
+    @Test
+    void roundTripPreservesSessionId() throws Exception {
+        LoggingEvent original = LoggingEvent.builder("ACCESS").action("read").sessionId("sess-xyz").build();
+
+        String json = mapper.writeValueAsString(original);
+        LoggingEvent deserialized = mapper.readValue(json, LoggingEvent.class);
+
+        assertEquals("sess-xyz", deserialized.getSessionId());
+    }
+
+    @Test
+    void withClientTypePreservesSessionId() {
+        LoggingEvent original = LoggingEvent.builder("QUERY").action("execute").sessionId("sess-123").build();
+        LoggingEvent copy = original.withClientType("api");
+
+        assertEquals("sess-123", copy.getSessionId());
+        assertEquals("api", copy.getClientType());
+    }
+
+    @Test
     void requestInfoAllFields() {
         RequestInfo request = RequestInfo.builder().requestId("req-123").method("POST").url("/query/sync").queryString("limit=100")
             .srcIp("10.0.0.1").destIp("10.0.0.2").destPort(8080).httpUserAgent("PIC-SURE/2.0").httpContentType("application/json")
