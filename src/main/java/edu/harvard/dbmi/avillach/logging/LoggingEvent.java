@@ -167,7 +167,7 @@ public final class LoggingEvent {
 
     @Override
     public String toString() {
-        return "LoggingEvent{eventType='" + eventType + "', action='" + action + "', clientType='" + clientType + "', sessionId='" + sessionId
-            + "'}";
+        return "LoggingEvent{eventType='" + eventType + "', action='" + action + "', clientType='" + clientType + "', sessionId='"
+            + sessionId + "'}";
     }
 }
