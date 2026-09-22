@@ -1,3 +1,11 @@
+> [!IMPORTANT]
+> **This repository is archived.** The code now lives in the PIC-SURE API mono-repository,
+> [hms-dbmi/pic-sure](https://github.com/hms-dbmi/pic-sure), under
+> [`libs/pic-sure-logging-client`](https://github.com/hms-dbmi/pic-sure/tree/main/libs/pic-sure-logging-client).
+> Work on it there, and open issues and pull requests against that repository.
+>
+> Everything below is the README as it stood when this repository was archived.
+
 # PIC-SURE Logging Client
 
 Lightweight Java client library for sending structured audit events to the [PIC-SURE Logging](https://github.com/hms-dbmi/PIC-SURE-Logging) service. Used by PIC-SURE platform components (API, Auth, HPDS, UI, etc.) to emit query, login, access, and error events to a centralized logging service.
